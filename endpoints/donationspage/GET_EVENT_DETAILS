@@ -1,11 +1,15 @@
-API Endpoint for Getting Event Data
-Request:
-bash
-curl -X POST http://localhost:8080/api/events/request \ //this is obvioulsy not going to be a localhost so ask me what the server's url is. 
+# Get Event Data
+
+## Request:
+```bash
+curl -X POST http://localhost:8080/api/events/request \
   -H "Content-Type: application/json" \
   -d '{"event_id": 1}'
-Response:
-json{
+```
+
+## Response:
+```json
+{
   "event_id": 1,
   "child_id": 1,
   "event_name": "Emma's 8th Birthday",
@@ -14,18 +18,21 @@ json{
   "event_message": "Help us make Emma's birthday extra special this year!",
   "videos_enabled": true,
   "photo_address": "https://example.com/emma-photo.jpg",
-  "child_name": "Emma"
+  "child_name": "Emma",
+  "stripe_connect_account_id": "acct_sample123",
+  "onboarding_complete": true
 }
-For the donations page, this gives you:
+```
 
-Event title: event_name + child_name
-Parent's message: event_message
-Photo to display: photo_address
-Video upload toggle: videos_enabled
-Deadline: expires_at
+## Key Fields:
+- `event_name` + `child_name` = page title
+- `event_message` = parent's message to display
+- `photo_address` = child's photo URL
+- `videos_enabled` = show/hide video upload
+- `expires_at` = donation deadline
+- `onboarding_complete` = enable/disable donation form
 
-Error cases:
-
-Event not found: {"error": "Event not found"} (404)
-Event expired: {"error": "This event has expired", "expired_at": "..."} (410)
-Invalid request: {"error": "Invalid request format", "details": "..."} (400)
+## Errors:
+- 404: Event not found
+- 410: Event expired
+- 400: Invalid JSON
