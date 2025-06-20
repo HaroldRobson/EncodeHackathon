@@ -54,6 +54,7 @@ func main() {
 		// Events routes
 		api.POST("/events/request", handlers.RequestEvent(db))
 		api.POST("/donations/create", handlers.CreateDonation(db))
+		api.POST("/uploads/video", handlers.UploadVideo)
 		// Future endpoints will follow this pattern:
 		// api.POST("/donations/create", createDonation(db))
 		// api.POST("/donations/list", listDonations(db))
