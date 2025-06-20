@@ -44,7 +44,7 @@ func main() {
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "OK",
-			"service": "birthday-donations-api",
+			"service": "aletterahead-api",
 		})
 	})
 
@@ -53,6 +53,7 @@ func main() {
 	{
 		// Events routes
 		api.POST("/events/request", handlers.RequestEvent(db))
+		api.POST("/donations/create", handlers.CreateDonation(db))
 		// Future endpoints will follow this pattern:
 		// api.POST("/donations/create", createDonation(db))
 		// api.POST("/donations/list", listDonations(db))
