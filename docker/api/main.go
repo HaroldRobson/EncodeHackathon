@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 
+	"aletterahead-api/handlers"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -50,7 +52,7 @@ func main() {
 	api := r.Group("/api")
 	{
 		// Events routes
-		api.POST("/events/request", requestEvent(db))
+		api.POST("/events/request", handlers.RequestEvent(db))
 		// Future endpoints will follow this pattern:
 		// api.POST("/donations/create", createDonation(db))
 		// api.POST("/donations/list", listDonations(db))

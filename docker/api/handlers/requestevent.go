@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"context"
@@ -11,15 +11,17 @@ import (
 
 // Event represents the event data structure
 type Event struct {
-	EventID       int       `json:"event_id"`
-	ChildID       int       `json:"child_id"`
-	EventName     string    `json:"event_name"`
-	ExpiresAt     time.Time `json:"expires_at"`
-	CreatedAt     time.Time `json:"created_at"`
-	EventMessage  *string   `json:"event_message"`
-	VideosEnabled bool      `json:"videos_enabled"`
-	PhotoAddress  *string   `json:"photo_address"`
-	ChildName     string    `json:"child_name"`
+	EventID                int       `json:"event_id"`
+	ChildID                int       `json:"child_id"`
+	EventName              string    `json:"event_name"`
+	ExpiresAt              time.Time `json:"expires_at"`
+	CreatedAt              time.Time `json:"created_at"`
+	EventMessage           *string   `json:"event_message"`
+	VideosEnabled          bool      `json:"videos_enabled"`
+	PhotoAddress           *string   `json:"photo_address"`
+	ChildName              string    `json:"child_name"`
+	StripeConnectAccountID *string   `json:"stripe_connect_account_id"`
+	OnboardingComplete     bool      `json:"onboarding_complete"`
 }
 
 // EventRequest represents the request structure for event operations
@@ -28,7 +30,7 @@ type EventRequest struct {
 }
 
 // requestEvent returns event information for the donations page
-func requestEvent(db *pgxpool.Pool) gin.HandlerFunc {
+func RequestEvent(db *pgxpool.Pool) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req EventRequest
 
@@ -44,19 +46,22 @@ func requestEvent(db *pgxpool.Pool) gin.HandlerFunc {
 		// Query to get event information with child name
 		query := `
 			SELECT 
-				e.event_id,
-				e.child_id,
-				e.event_name,
-				e.expires_at,
-				e.created_at,
-				e.event_message,
-				e.videos_enabled,
-				e.photo_address,
-				c.child_name
-			FROM events e
-			JOIN children c ON e.child_id = c.child_id
-			WHERE e.event_id = $1
-		`
+	e.event_id,
+	e.child_id,
+	e.event_name,
+	e.expires_at,
+	e.created_at,
+	e.event_message,
+	e.videos_enabled,
+	e.photo_address,
+	c.child_name,
+	pa.stripe_connect_account_id,
+	pa.onboarding_complete
+FROM events e
+JOIN children c ON e.child_id = c.child_id
+JOIN parents p ON c.parent_id = p.parent_id
+LEFT JOIN payment_accounts pa ON p.parent_id = pa.parent_id
+WHERE e.event_id = $1	`
 
 		var event Event
 		err := db.QueryRow(context.Background(), query, req.EventID).Scan(
@@ -69,6 +74,9 @@ func requestEvent(db *pgxpool.Pool) gin.HandlerFunc {
 			&event.VideosEnabled,
 			&event.PhotoAddress,
 			&event.ChildName,
+			// ADD THESE:
+			&event.StripeConnectAccountID,
+			&event.OnboardingComplete,
 		)
 		if err != nil {
 			if err.Error() == "no rows in result set" {

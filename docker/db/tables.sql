@@ -39,12 +39,20 @@ CREATE TABLE donations (
     created_at TIMESTAMP DEFAULT NOW(),
     video_address VARCHAR(500)
 );
-
+CREATE TABLE payment_accounts (
+    account_id SERIAL PRIMARY KEY,
+    parent_id INTEGER NOT NULL REFERENCES parents(parent_id),
+    stripe_connect_account_id VARCHAR(255) NOT NULL,
+    onboarding_complete BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
 -- Create indexes for better performance
 CREATE INDEX idx_children_parent_id ON children(parent_id);
 CREATE INDEX idx_events_child_id ON events(child_id);
 CREATE INDEX idx_donations_event_id ON donations(event_id);
 CREATE INDEX idx_donations_approved ON donations(approved);
+CREATE INDEX idx_payment_accounts_parent_id ON payment_accounts(parent_id);
+CREATE INDEX idx_payment_accounts_stripe_id ON payment_accounts(stripe_connect_account_id);
 
 -- Insert some sample data for testing
 INSERT INTO parents (parent_email, auth0_id, stripe_customer_id) VALUES
@@ -55,3 +63,6 @@ INSERT INTO children (DOB, parent_id, email, isa_expiry, child_name) VALUES
 
 INSERT INTO events (child_id, event_name, expires_at, event_message, videos_enabled, photo_address) VALUES
 (1, 'Emma''s 8th Birthday', '2025-07-15', 'Help us make Emma''s birthday extra special this year!', true, 'https://example.com/emma-photo.jpg');
+-- Sample payment account (for testing - normally created via API)
+INSERT INTO payment_accounts (parent_id, stripe_connect_account_id, onboarding_complete) VALUES
+(1, 'acct_sample123', true);-- Birthday Donations Database Schema

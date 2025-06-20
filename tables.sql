@@ -38,4 +38,10 @@ stripe_customer_id VARCHAR(255),
 created_at TIMESTAMP DEFAULT NOW()
 );
 
-
+CREATE TABLE payment_accounts (
+    account_id SERIAL PRIMARY KEY,
+    parent_id INTEGER NOT NULL REFERENCES parents(parent_id),
+    stripe_connect_account_id VARCHAR(255) NOT NULL,
+    onboarding_complete BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
