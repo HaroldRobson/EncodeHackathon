@@ -1,0 +1,31 @@
+API Endpoint for Getting Event Data
+Request:
+bash
+curl -X POST http://localhost:8080/api/events/request \ //this is obvioulsy not going to be a localhost so ask me what the server's url is. 
+  -H "Content-Type: application/json" \
+  -d '{"event_id": 1}'
+Response:
+json{
+  "event_id": 1,
+  "child_id": 1,
+  "event_name": "Emma's 8th Birthday",
+  "expires_at": "2025-07-15T00:00:00Z",
+  "created_at": "2025-06-20T17:23:56.597463Z",
+  "event_message": "Help us make Emma's birthday extra special this year!",
+  "videos_enabled": true,
+  "photo_address": "https://example.com/emma-photo.jpg",
+  "child_name": "Emma"
+}
+For the donations page, this gives you:
+
+Event title: event_name + child_name
+Parent's message: event_message
+Photo to display: photo_address
+Video upload toggle: videos_enabled
+Deadline: expires_at
+
+Error cases:
+
+Event not found: {"error": "Event not found"} (404)
+Event expired: {"error": "This event has expired", "expired_at": "..."} (410)
+Invalid request: {"error": "Invalid request format", "details": "..."} (400)
