@@ -54,7 +54,9 @@ func main() {
 		// Events routes
 		api.POST("/events/request", handlers.RequestEvent(db))
 		api.POST("/events/list", handlers.GetEvents(db))
+		api.POST("/events/create", handlers.CreateEvent(db))
 		api.POST("/donations/create", handlers.CreateDonation(db))
+		api.POST("/donations/list", handlers.ListDonations(db)) //
 		api.POST("/uploads/video", handlers.UploadVideo)
 		api.POST("/children/list", handlers.GetChildren(db))
 		api.POST("/children/create", handlers.CreateChild(db))
