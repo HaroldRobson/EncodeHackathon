@@ -62,6 +62,7 @@ func main() {
 		api.POST("/children/list", handlers.GetChildren(db))
 		api.POST("/children/create", handlers.CreateChild(db))
 		api.POST("/parents/create", handlers.CreateParent(db))
+		api.POST("/parents/get", handlers.GetParent(db))
 
 		// Future endpoints will follow this pattern:
 		// api.POST("/donations/create", createDonation(db))
