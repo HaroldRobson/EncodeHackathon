@@ -65,6 +65,7 @@ func main() {
 		api.POST("/parents/get", handlers.GetParent(db))
 		api.POST("/payments/save-account", handlers.SaveStripeAccount(db))
 		api.POST("/payments/onboarding-complete", handlers.UpdateOnboardingStatus(db))
+		api.POST("/payments/status", handlers.GetPaymentAccounts(db))
 		// Future endpoints will follow this pattern:
 		// api.POST("/donations/create", createDonation(db))
 		// api.POST("/donations/list", listDonations(db))
