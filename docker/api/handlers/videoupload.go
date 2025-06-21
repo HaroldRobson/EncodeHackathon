@@ -81,7 +81,7 @@ func UploadVideo(c *gin.Context) {
 
 	// Generate the public URL
 	// This assumes your server is accessible at the host/port
-	videoURL := fmt.Sprintf("http://localhost:8080/videos/%s", filename)
+	videoURL := fmt.Sprintf("http://localhost:8080/api/videos/%s", filename)
 
 	response := VideoUploadResponse{
 		VideoURL: videoURL,
