@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -66,19 +67,8 @@ func UploadVideo(c *gin.Context) {
 
 	// Generate unique filename
 	// Format: timestamp_originalname.ext
-	filename := fmt.Sprintf("%d_%s",
-		c.GetHeader("X-Request-ID"), // You can use timestamp or UUID instead
-		file.Filename,
-	)
-
-	// If no request ID, use a simple counter or timestamp
-	if filename == "0_"+file.Filename {
-		filename = fmt.Sprintf("%d_%s",
-			gin.H{}["timestamp"], // Simple approach for hackathon
-			file.Filename,
-		)
-	}
-
+	timestamp := time.Now().Unix()
+	filename := fmt.Sprintf("%d_%s", timestamp, file.Filename)
 	filepath := filepath.Join(uploadDir, filename)
 
 	// Save the file

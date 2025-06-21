@@ -3,15 +3,46 @@
 # 🎯 MEGATEST - PARENT & PAYMENT SETUP SECTION
 #
 # 🎯 MEGATEST - Reset existing Bunting data first
-echo "🧹 Cleaning up existing Bunting data..."
+# Clean up existing Bunting data first
 echo "🧹 Cleaning existing Bunting data..."
-docker exec donations_db psql -U postgres -d donations -c "DELETE FROM payment_accounts WHERE parent_id IN (SELECT parent_id FROM parents WHERE auth0_id = 'auth0|bunting_primary_123');" > /dev/null
-docker exec donations_db psql -U postgres -d donations -c "DELETE FROM events WHERE child_id IN (SELECT child_id FROM children WHERE parent_id IN (SELECT parent_id FROM parents WHERE auth0_id = 'auth0|bunting_primary_123'));" > /dev/null  
-docker exec donations_db psql -U postgres -d donations -c "DELETE FROM children WHERE parent_id IN (SELECT parent_id FROM parents WHERE auth0_id = 'auth0|bunting_primary_123');" > /dev/null
-docker exec donations_db psql -U postgres -d donations -c "DELETE FROM parents WHERE auth0_id = 'auth0|bunting_primary_123';" > /dev/null
+
+# Delete in correct order to respect foreign key constraints
+docker exec donations_db psql -U postgres -d donations -c "
+DELETE FROM donations WHERE event_id IN (
+  SELECT event_id FROM events WHERE child_id IN (
+    SELECT child_id FROM children WHERE parent_id IN (
+      SELECT parent_id FROM parents WHERE auth0_id LIKE 'auth0|bunting_primary_%'
+    )
+  )
+);
+" > /dev/null
+
+docker exec donations_db psql -U postgres -d donations -c "
+DELETE FROM events WHERE child_id IN (
+  SELECT child_id FROM children WHERE parent_id IN (
+    SELECT parent_id FROM parents WHERE auth0_id LIKE 'auth0|bunting_primary_%'
+  )
+);
+" > /dev/null
+
+docker exec donations_db psql -U postgres -d donations -c "
+DELETE FROM payment_accounts WHERE parent_id IN (
+  SELECT parent_id FROM parents WHERE auth0_id LIKE 'auth0|bunting_primary_%'
+);
+" > /dev/null
+
+docker exec donations_db psql -U postgres -d donations -c "
+DELETE FROM children WHERE parent_id IN (
+  SELECT parent_id FROM parents WHERE auth0_id LIKE 'auth0|bunting_primary_%'
+);
+" > /dev/null
+
+docker exec donations_db psql -U postgres -d donations -c "
+DELETE FROM parents WHERE auth0_id LIKE 'auth0|bunting_primary_%';
+" > /dev/null
+
 echo "Clean slate ready!"
 echo ""
-
 # Delete existing Bunting parent to ensure clean test
 curl -s -X DELETE "$BASE_URL/api/parents/delete" \
   -H "Content-Type: application/json" \
@@ -433,7 +464,29 @@ echo ""
 # Request 15: Create Second Donation (Grandma Bunting)
 # 💭 CONTEXT: Grandma Bunting visits same event and donates with video message
 # 📊 DATA AVAILABLE: event_id (from shareable link), donor fills form
-echo "15. Grandma Bunting making donation with video message..."
+# Request 15.1: Upload Grandma's Video Message
+# 💭 CONTEXT: Grandma recorded a sweet video message and uploads it first
+# 📊 DATA AVAILABLE: video file on Grandma's device
+echo "14.5. Grandma uploading her video message..."
+
+# Create a fake video file for testing
+echo "fake video content for testing" > /tmp/grandma_video.mp4
+
+# Upload it to the API
+VIDEO_UPLOAD_RESPONSE=$(curl -s -X POST "$BASE_URL/api/uploads/video" \
+  -F "video=@/tmp/grandma_video.mp4")
+
+echo "Response: $VIDEO_UPLOAD_RESPONSE"
+VIDEO_URL=$(echo $VIDEO_UPLOAD_RESPONSE | jq -r '.video_url')
+echo "📹 Video URL: $VIDEO_URL"
+# 🌐 WEBPAGE TRANSITION:
+# Video upload complete! Upload form shows: "✅ Video uploaded successfully"
+# Grandma can now submit her donation with the video attached
+
+# Request 15: Create Second Donation (Grandma Bunting with Real Video)
+# 💭 CONTEXT: Grandma Bunting making donation with her uploaded video
+# 📊 DATA AVAILABLE: event_id (from shareable link), video_url (from upload response)
+echo "15. Grandma Bunting making donation with uploaded video..."
 DONATION2_CREATE_RESPONSE=$(curl -s -X POST "$BASE_URL/api/donations/create" \
   -H "Content-Type: application/json" \
   -d "{
@@ -441,7 +494,7 @@ DONATION2_CREATE_RESPONSE=$(curl -s -X POST "$BASE_URL/api/donations/create" \
     \"donor_name\": \"Grandma Bunting\",
     \"amount_pence\": 5000,
     \"message\": \"My dearest Bunting Jr, Grandma loves you so much! I made you a special video message! 💝👵\",
-    \"video_address\": \"https://bunting-family-videos.test/grandma-birthday-message.mp4\"
+    \"video_address\": \"$VIDEO_URL\"
   }")
 
 echo "Response: $DONATION2_CREATE_RESPONSE"
